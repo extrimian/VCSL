@@ -3,6 +3,7 @@ from kink import di
 
 from di_init import init_di
 from routers.rout_health import HealthCheckRouter
+from routers.rout_bitarray import BitArrayRouter
 
 
 from services.serv_bitarray import BitArrayService
@@ -29,9 +30,11 @@ async def test():
         bits.append((i, bit_array[i]))
         print("Bit {} is {}".format(i, bit_array[i]))
 
-asyncio.run(test())
+# asyncio.run(test())
 
 
 app = FastAPI()
 health_router = di[HealthCheckRouter]
+bit_array_router = di[BitArrayRouter]
 app.include_router(health_router.router)
+app.include_router(bit_array_router.router)

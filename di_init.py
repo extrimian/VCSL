@@ -6,6 +6,7 @@ from services.serv_bitarray import BitArrayService
 from redis import Redis
 
 from routers.rout_health import HealthCheckRouter
+from routers.rout_bitarray import BitArrayRouter
 
 
 def init_di() -> None:
@@ -17,5 +18,6 @@ def init_di() -> None:
     di[RedisService] = RedisService()
     di[HealthCheckRouter] = HealthCheckRouter()
     di[BitArrayService] = BitArrayService()
+    di[BitArrayRouter] = BitArrayRouter()
 
     pass
