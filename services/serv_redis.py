@@ -11,11 +11,9 @@ class RedisService:
         result = self.redis.get(key)
         if result is None:
             raise KeyError(f"Key {key} not found in redis")
-        print(f"Got {key}: {result}")
         return result
 
     async def set(self, key: str, value: str) -> None:
-        print(f"About to set {key} to {value}")
         self.redis.set(key, value)
 
     async def acquire_lock(self, lock_name: str, acquire_timeout: int = 10, blocking: bool = True) -> bool:
