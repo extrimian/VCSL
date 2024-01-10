@@ -10,6 +10,7 @@ class BitArrayRouter:
         self.router = APIRouter()
         self.router.add_api_route(path="/bit-array", endpoint=self.create_bit_array, methods=["PUT"],)
         self.router.add_api_route(path="/bit-array/{uuid}", endpoint=self.get_compressed_bit_array, methods=["GET"])
+        self.router.add_api_route(path="/bit-array/{uuid}/free", endpoint=self.get_free_bits, methods=["GET"])
         self.router.add_api_route(path="/bit-array/{uuid}/index", endpoint=self.acquire_index, methods=["PUT"])
         self.router.add_api_route(path="/bit-array/{uuid}/{index}", endpoint=self.flip_bit, methods=["POST"])
         self.router.add_api_route(path="/bit-array/{uuid}/{index}", endpoint=self.get_bit_array_element, methods=["GET"])
@@ -42,3 +43,9 @@ class BitArrayRouter:
             raise HTTPException(status_code=404, detail="Bit array not found")
         bit = bit_array[index]
         return {"bit": bit}
+
+    async def get_free_bits(self, uuid: str):
+        free_bits = await self.bit_array_service.get_free_bits(uuid)
+        if free_bits == -1:
+            raise HTTPException(status_code=404, detail="Bit array not found")
+        return {"free": free_bits}

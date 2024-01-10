@@ -3,17 +3,17 @@ import base64
 
 
 class BitArray:
-    def __init__(self, size=(2**16)):
-        self.array = '\x00' * (size // 8 + 1)
+    def __init__(self, size=(2**17)):
+        self.array = '\x00' * (size // 8)
         # convert to ascii
         self.array = bytearray(self.array.encode('ascii'))  # Compressed bitarray is encoded in utf-8, but the bit array is in ascii
         self.size = size
         self.free = size
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index):
         return 1 if self.array[index // 8] & (1 << (index % 8)) != 0 else 0
 
-    def __setitem__(self, index: int, value: int):
+    def __setitem__(self, index, value):
         if value not in [0, 1]:
             raise ValueError("BitArray only accepts 0 or 1")
         prev = self[index]
@@ -41,7 +41,7 @@ class BitArray:
         return base64_compressed
 
     @classmethod
-    def decompress(cls, compressed, size=(2**16)):
+    def decompress(cls, compressed, size=(2**17)):
         uncompressed_base64 = base64.b64decode(compressed)
         uncompressed = gzip.decompress(uncompressed_base64)
         bitarray = cls(size)

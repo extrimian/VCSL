@@ -18,7 +18,6 @@ class BitArrayService:
         return bit_array_uuid
 
     async def get_bit_array(self, bit_array_uuid: str) -> BitArray:
-        await self.redis_service.acquire_lock(bit_array_uuid, blocking=True)
         try:
             compressed_bit_array = await self.redis_service.get(bit_array_uuid)
         except Exception:
@@ -27,7 +26,10 @@ class BitArrayService:
         return BitArray.decompress(compressed_bit_array)
 
     async def acquire_bit_array_index(self, bit_array_uuid: str) -> int:
-        await self.redis_service.acquire_lock(bit_array_uuid, blocking=True)
+        lock = await self.redis_service.acquire_lock(bit_array_uuid, blocking=True)
+        if lock is None:
+            return -1
+        bit_array: BitArray = None
         try:
             bit_array = await self.get_bit_array(f'mask:{bit_array_uuid}')
         except Exception:
@@ -41,12 +43,16 @@ class BitArrayService:
         while bit_array[index] == 1:
             index = random.randint(0, bit_array.size - 1)
 
+        bit_array[index] = 1
         await self.redis_service.set(f'mask:{bit_array_uuid}', bit_array.compress())
         await self.redis_service.release_lock(bit_array_uuid)
         return index
 
     async def flip_bit(self, bit_array_uuid: str, index: int) -> bool:
-        await self.redis_service.acquire_lock(bit_array_uuid, blocking=True)
+        lock = await self.redis_service.acquire_lock(bit_array_uuid, blocking=True)
+        if lock is None:
+            return False
+        bit_array: BitArray = None
         try:
             bit_array = await self.get_bit_array(bit_array_uuid)
         except Exception:
@@ -55,3 +61,10 @@ class BitArrayService:
         await self.redis_service.set(bit_array_uuid, bit_array.compress())
         await self.redis_service.release_lock(bit_array_uuid)
         return True  # TODO: Check if there was an error and return false
+
+    async def get_free_bits(self, bit_array_uuid: str) -> int:
+        try:
+            bit_array = await self.get_bit_array(f'mask:{bit_array_uuid}')
+        except Exception:
+            return -1
+        return bit_array.free
