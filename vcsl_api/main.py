@@ -7,7 +7,8 @@ from routers.rout_bitarray import BitArrayRouter
 
 
 from services.serv_bitarray import BitArrayService
-import asyncio
+# import asyncio
+
 
 init_di()
 
