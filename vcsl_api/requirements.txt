@@ -1,2 +1,3 @@
-fastapi==0.108.0
+fastapi==0.109.0
 kink==0.7.0
+redis==5.0.1

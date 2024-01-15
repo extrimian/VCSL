@@ -32,39 +32,45 @@ async def create_key(key: dto.KeyDTO):
         f"rm {rnd_file_name}"
     ]
 
+    def remove_pem():
+        Popen(f"rm {rnd_file_name}", stdout=PIPE, stderr=PIPE, shell=True)
+
     # Populate the file
     subp = Popen(cmds[0], stdout=PIPE, stderr=PIPE, shell=True)
     out, err = subp.communicate()
     if subp.returncode != 0:
         print(err.decode("utf-8"), file=stderr)
+        remove_pem()
         raise HTTPException(status_code=500, detail="Error importing key (1)")
 
     # Import the key
     subp = Popen(cmds[1], stdout=PIPE, stderr=PIPE, shell=True)
     out, err = subp.communicate()
     if subp.returncode != 0:
-        print(err.decode("utf-8"), file=stderr)
-        raise HTTPException(status_code=500, detail="Error importing key (2)")
+        if err.decode("utf-8").find("already exists") != -1:
+            print(f"Key {key.name} already exists", file=stderr)
+        else:
+            print(f'Error: {err.decode("utf-8")}', file=stderr)
+            remove_pem()
+            raise HTTPException(status_code=500, detail="Error importing key (2)")
 
     # Remove the file
-    subp = Popen(cmds[2], stdout=PIPE, stderr=PIPE, shell=True)
-    out, err = subp.communicate()
-    if subp.returncode != 0:
-        print(err.decode("utf-8"), file=stderr)
+    remove_pem()
     return "OK"
 
 
 @app.post("/bitarray/{id}")
 async def upload_bitarray(id: str, bitarray: dto.BitArrayDTO):
     # Check if the key exists
-    subp = Popen(f"ipfs key list -l | grep {id}", stdout=PIPE, stderr=PIPE, shell=True)
+    subp = Popen(f"ipfs key list -l | grep {bitarray.key_name}", stdout=PIPE, stderr=PIPE, shell=True)
     out, err = subp.communicate()
     if subp.returncode != 0 or len(out) == 0:
-        print(err.decode("utf-8"), file=stderr)
+        print(f'Error: {err.decode("utf-8")}', file=stderr)
+        print(f'Out: {out.decode("utf-8")}', file=stderr)
         return {"error": "Key not found"}
 
     # Add the bitarray
-    subp = Popen(f"echo -n {bitarray.bitarray} | ipfs add -Q --cid-version=1", stdout=PIPE, stderr=PIPE, shell=True)
+    subp = Popen(f"echo {bitarray.bitarray} | ipfs add -Q --cid-version=1", stdout=PIPE, stderr=PIPE, shell=True)
     out, err = subp.communicate()
     if subp.returncode != 0:
         print(err.decode("utf-8"), file=stderr)
@@ -74,7 +80,7 @@ async def upload_bitarray(id: str, bitarray: dto.BitArrayDTO):
     print(f"New cid for {id}: {cid}")
 
     # Publish under the name
-    subp = Popen(f"ipfs name publish -Q --key={bitarray.key} {cid}", stdout=PIPE, stderr=PIPE, shell=True)
+    subp = Popen(f"ipfs name publish -Q --key={bitarray.key_name} {cid}", stdout=PIPE, stderr=PIPE, shell=True)
     out, err = subp.communicate()
     if subp.returncode != 0:
         print(err.decode("utf-8"), file=stderr)

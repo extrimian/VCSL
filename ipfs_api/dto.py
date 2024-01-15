@@ -8,4 +8,4 @@ class KeyDTO(BaseModel):
 
 class BitArrayDTO(BaseModel):
     bitarray: str
-    name: str
+    key_name: str
