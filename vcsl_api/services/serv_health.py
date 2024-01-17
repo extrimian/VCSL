@@ -1,3 +1,7 @@
+from kink import inject
+
+
+@inject
 class HealthCheckService:
 
     def __init__(self):

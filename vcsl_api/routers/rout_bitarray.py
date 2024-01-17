@@ -32,7 +32,7 @@ class BitArrayRouter:
         return {"message": "Bit flipped"}
 
     async def get_compressed_bit_array(self, uuid: str):
-        bit_array = await self.bit_array_service.get_bit_array(uuid)
+        bit_array, _ = await self.bit_array_service.get_bit_array(uuid)
         if (bit_array is None):
             raise HTTPException(status_code=404, detail="Bit array not found")
         return {"bit-array": bit_array.compress()}
