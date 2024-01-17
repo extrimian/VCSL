@@ -5,14 +5,28 @@ import requests
 import pytest
 
 
+@pytest.mark.dependency()
 def test_create_bit_array():
     path = '/bit-array'
     # Create a bit array
     response = requests.put(pytest.api_url + path)
     assert response.status_code == 200
     assert 'id' in response.json()
-    print(response.json())
+    pytest.created_bit_array_id = response.json()['id']
 
 
-def __test_flip_bit():
-    pass
+@pytest.mark.dependency(depends=['test_create_bit_array'])
+def test_free_space():
+    path = f'/bit-array/{pytest.created_bit_array_id}/free'
+    response = requests.get(pytest.api_url + path)
+    assert response.status_code == 200
+    assert response.json()['free'] == 2**17
+
+
+@pytest.mark.dependency(depends=['test_create_bit_array'])
+def test_get_compressed():
+    path = f'/bit-array/{pytest.created_bit_array_id}'
+    response = requests.get(pytest.api_url + path)
+    assert response.status_code == 200
+    assert 'bit-array' in response.json()
+    assert len(response.json()['bit-array']) == len('H4sIAGrhp2UC/+3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA')

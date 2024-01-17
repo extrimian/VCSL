@@ -3,3 +3,4 @@ kink==0.7.0
 psycopg2==2.9.6
 pytest==7.4.4
 redis==5.0.1
+Requests==2.31.0

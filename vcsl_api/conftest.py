@@ -37,7 +37,7 @@ def pytest_sessionstart(session):
 
     # Wait for the docker containers to start
     import time
-    time.sleep(5)
+    time.sleep(2)
 
     new_env = {
         'psql_db': psql_db_name,
@@ -55,7 +55,7 @@ def pytest_sessionstart(session):
     _ = Popen(["uvicorn", "main:app", "--reload", "--port", "42423"], stdout=PIPE, stderr=PIPE, env=env)
 
     pytest.api_url = 'http://localhost:42423'
-    time.sleep(3)
+    time.sleep(2)
 
 def pytest_sessionfinish(session, exitstatus):
     print("Tearing down the API")
