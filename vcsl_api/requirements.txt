@@ -1,3 +1,5 @@
 fastapi==0.109.0
 kink==0.7.0
+psycopg2==2.9.6
+pytest==7.4.4
 redis==5.0.1
