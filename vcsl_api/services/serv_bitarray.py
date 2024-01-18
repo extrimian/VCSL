@@ -1,29 +1,54 @@
 import random
+import sys
 from kink import inject
 from services.abstractClasses.serv_cache_i import ICacheService
 from services.abstractClasses.serv_lock_i import ILockService
+from services.serv_web3 import Web3Service
+from services.serv_ipfs import IPFSService
 from persistance.dao_bitarray import BitArrayDAO
 from models.bitarray import BitArray
+from models.ipfs_dto import IPFSDto
 from uuid import uuid4
 
 
 @inject
 class BitArrayService:
-    def __init__(self, cache_service: ICacheService, lock_service: ILockService, bitarray_dao: BitArrayDAO):
+    def __init__(self,
+                 cache_service: ICacheService,
+                 lock_service: ILockService,
+                 bitarray_dao: BitArrayDAO,
+                 web3_service: Web3Service,
+                 ipfs_service: IPFSService):
+
         self.bitarray_dao: BitArrayDAO = bitarray_dao
         self.cache_service: ICacheService = cache_service
         self.lock_service: ILockService = lock_service
+        self.ipfs_service: IPFSService = ipfs_service
+        self.web3_service: Web3Service = web3_service
 
-    async def create_bit_array(self) -> str:
+    async def create_bit_array(self) -> (str, BitArray):
         bit_array_uuid = str(uuid4())
         bit_array = BitArray(id=bit_array_uuid)
         await self.lock_service.acquire_lock(bit_array_uuid)
         self.bitarray_dao.set_bitarray(bit_array)
         self.bitarray_dao.set_mask(bit_array)
-        # await self.cache_service.set(f'mask:{bit_array_uuid}', bit_array.compress())
-        # await self.cache_service.set(bit_array_uuid, bit_array.compress())
         await self.lock_service.release_lock(bit_array_uuid)
-        return bit_array_uuid
+        return bit_array_uuid, bit_array
+
+    async def upload_bit_array(self, id: str, bitarray: BitArray) -> None:
+        keyCreated = self.ipfs_service.create_key(key_name=id)
+        if not keyCreated:
+            raise Exception("IPFS Key creation failed")
+        try:
+            ipfs_dto: IPFSDto = self.ipfs_service.add_vcsl(bit_array=bitarray, bit_array_id=id, key_name=id)
+        except Exception as e:
+            print(e, file=sys.stderr)
+            return
+
+        # Now, upload it to the smart contract
+        result = self.web3_service.add_vcsl(id=id, ipns=ipfs_dto.get_ipns())
+        if not result:
+            raise Exception("VCSL upload failed")
 
     async def get_bit_array(self, bit_array_uuid: str, cached=True) -> (BitArray, BitArray):
         compressed_bit_array = self.bitarray_dao.get_bitarray(bit_array_uuid)

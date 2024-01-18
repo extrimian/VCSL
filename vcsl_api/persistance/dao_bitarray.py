@@ -29,14 +29,11 @@ class BitArrayDAO:
     def get_bitarray(self, bitarray_id: str) -> BitArray:
         with self.psql.get_connection() as conn:
             with conn.cursor() as cur:
-                print(f"About to get bitarray with id: {bitarray_id}")
                 cur.execute('SELECT * FROM bitarray WHERE id = %s', (bitarray_id,))
                 row = cur.fetchone()
                 self.psql.put_connection(conn)
                 if row is None:
                     return None
-                print("row[0]: ", row[0])
-                print("row[1]: ", row[1])
                 return BitArray.decompress(row[1], id=row[0])
 
     def get_mask(self, mask_id: str) -> BitArray:
@@ -53,8 +50,6 @@ class BitArrayDAO:
         with self.psql.get_connection() as conn:
             with conn.cursor() as cur:
                 compressed = bitarray.compress()
-                print(f"About to insert bitarray with id: {bitarray.id}")
-                print(f"Compressed bitarray: {compressed}")
                 result = cur.execute('INSERT INTO bitarray VALUES (%s, %s) ON CONFLICT (id) DO UPDATE SET bitarray = %s', (bitarray.id, compressed, compressed))
                 conn.commit()
                 if result is not None:
@@ -66,7 +61,6 @@ class BitArrayDAO:
         with self.psql.get_connection() as conn:
             with conn.cursor() as cur:
                 compressed = mask.compress()
-                print(f"About to insert mask with id: {mask.id}")
                 cur.execute('INSERT INTO mask VALUES (%s, %s) ON CONFLICT (id) DO UPDATE SET mask = %s', (mask.id, compressed, compressed))
                 conn.commit()
                 self.psql.put_connection(conn)

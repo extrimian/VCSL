@@ -6,6 +6,7 @@ from services.abstractClasses.serv_lock_i import ILockService
 from services.serv_web3 import Web3Service
 from services.serv_lock import LockService
 from services.serv_cache import CacheService
+from services.serv_ipfs import IPFSService
 from redis import Redis
 
 
@@ -25,11 +26,14 @@ def init_di() -> None:
         raise Exception("Unable to connect to postgres")
 
     di['web3_url'] = environ.get('WEB3_URL', 'http://localhost:7545')
-    di['web3_wallet_priv_key'] = environ.get('WEB3_PRIVATE_KEY', '0x78f20d29b9ff7226d40fd408d6a991aac2af4364b5e1a31b5a96035dcf68f44b')  # This is a development only key
-    di['web3_contract_addr'] = environ.get('WEB3_CONTRACT_ADDR', '0x8ceBE8333A85Faed0e55EB2c07607A491cdA66f9')
+    di['web3_wallet_priv_key'] = environ.get('WEB3_PRIVATE_KEY', '0x642514a5f2352b23af08896cd52c33ca4c9e988ff6c3e64796ef87c6ce7fdbb1')  # This is a development only key
+    di['web3_contract_addr'] = environ.get('WEB3_CONTRACT_ADDR', '0x8fb9b28aF6506af52De9e2595863Bf5D20ddbfd1')
     di['web3_abi_path'] = environ.get('WEB3_ABI_PATH', './resources/smart_contracts/vcsl_abi.json')
     with open(di['web3_abi_path'], 'r') as abi_definition:
         di['web3_abi'] = abi_definition.read()
+
+    di['ipfs_api_url'] = environ.get('IPFS_API_URL', 'http://localhost:4243')
+    di[IPFSService] = IPFSService(ipfs_api_url=di['ipfs_api_url'])
 
     di[Web3Service] = Web3Service(url=di['web3_url'], wallet_priv_key=di['web3_wallet_priv_key'], contract_addr=di['web3_contract_addr'], abi=di['web3_abi'])
 

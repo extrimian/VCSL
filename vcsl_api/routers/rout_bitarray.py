@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from kink import inject
 from services.serv_bitarray import BitArrayService
 
@@ -15,8 +15,9 @@ class BitArrayRouter:
         self.router.add_api_route(path="/bit-array/{uuid}/{index}", endpoint=self.flip_bit, methods=["POST"])
         self.router.add_api_route(path="/bit-array/{uuid}/{index}", endpoint=self.get_bit_array_element, methods=["GET"])
 
-    async def create_bit_array(self):
-        bit_array_uuid = await self.bit_array_service.create_bit_array()
+    async def create_bit_array(self, background_tasks: BackgroundTasks):
+        bit_array_uuid, bit_array = await self.bit_array_service.create_bit_array()
+        background_tasks.add_task(self.bit_array_service.upload_bit_array, bit_array_uuid, bit_array)
         return {"id": bit_array_uuid}
 
     async def acquire_index(self, uuid: str):
