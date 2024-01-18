@@ -118,7 +118,12 @@ This Redis service is usde for locks
 - **Request:**
   - Request Body:
     - Content Type: `application/json`
-      - Schema: `#/components/schemas/URLDto`
+      - Schema: 
+      ```json
+      {
+        'url': string
+      }
+      ```
 
 ---
 
@@ -130,7 +135,13 @@ This Redis service is usde for locks
 - **Request:**
   - Request Body:
     - Content Type: `application/json`
-      - Schema: `#/components/schemas/VCSLDto`
+      - Schema: 
+      ```json
+      {
+        'id': string,
+        'ipns': string
+      }
+      ```
 
 ---
 
