@@ -8,7 +8,9 @@ from services.serv_ipfs import IPFSService
 from persistance.dao_bitarray import BitArrayDAO
 from models.bitarray import BitArray
 from models.ipfs_dto import IPFSDto
+from misc.scheduler import Scheduler
 from uuid import uuid4
+from datetime import datetime
 
 
 @inject
@@ -18,13 +20,21 @@ class BitArrayService:
                  lock_service: ILockService,
                  bitarray_dao: BitArrayDAO,
                  web3_service: Web3Service,
-                 ipfs_service: IPFSService):
+                 ipfs_service: IPFSService,
+                 scheduler: Scheduler
+                 ):
 
         self.bitarray_dao: BitArrayDAO = bitarray_dao
         self.cache_service: ICacheService = cache_service
         self.lock_service: ILockService = lock_service
         self.ipfs_service: IPFSService = ipfs_service
         self.web3_service: Web3Service = web3_service
+        self.scheduler: Scheduler = scheduler
+
+        print(f"All bitarrays: {self.bitarray_dao.get_all_bitarrays()}")
+        print(f"Total: {len(self.bitarray_dao.get_all_bitarrays())}")
+
+        self.scheduler.add_job(self.update_bitarrays_in_ipfs, 'interval', hours=5, next_run_time=datetime.now())
 
     async def create_bit_array(self) -> (str, BitArray):
         bit_array_uuid = str(uuid4())
@@ -35,7 +45,7 @@ class BitArrayService:
         await self.lock_service.release_lock(bit_array_uuid)
         return bit_array_uuid, bit_array
 
-    async def upload_bit_array(self, id: str, bitarray: BitArray) -> None:
+    def upload_bit_array(self, id: str, bitarray: BitArray) -> None:
         keyCreated = self.ipfs_service.create_key(key_name=id)
         if not keyCreated:
             raise Exception("IPFS Key creation failed")
@@ -102,4 +112,15 @@ class BitArrayService:
             bit_array, mask = await self.get_bit_array(bit_array_uuid)
         except Exception:
             return -1
-        return bit_array.free
+        return mask.free
+
+    def update_bitarrays_in_ipfs(self):
+        bitarrays = self.bitarray_dao.get_all_bitarrays()
+        for bitarray in bitarrays:
+            try:
+                dto: IPFSDto = self.ipfs_service.update_vcsl(bitarray)
+                print(f"Result: {dto}")
+            except Exception as e:
+                print(f"Error updating bitarray {bitarray.id} in IPFS")
+                print(e, file=sys.stderr)
+                break

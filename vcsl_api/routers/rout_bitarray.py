@@ -39,9 +39,11 @@ class BitArrayRouter:
         return {"bit-array": bit_array.compress()}
 
     async def get_bit_array_element(self, uuid: str, index: int):
-        bit_array = await self.bit_array_service.get_bit_array(uuid)
+        bit_array, _ = await self.bit_array_service.get_bit_array(uuid)
         if bit_array is None:
             raise HTTPException(status_code=404, detail="Bit array not found")
+        if index >= bit_array.size:
+            raise HTTPException(status_code=404, detail="Index out of bounds")
         bit = bit_array[index]
         return {"bit": bit}
 

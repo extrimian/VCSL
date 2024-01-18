@@ -37,8 +37,7 @@ class Web3Service:
         })
         signed_txn = self.web3.eth.account.sign_transaction(call_func, self.account._private_key)
         txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        recipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
-        print(f"Receipt: {recipt}")
+        _ = self.web3.eth.wait_for_transaction_receipt(txn_hash)
         return True
 
     def get_issuer_url(self) -> str:

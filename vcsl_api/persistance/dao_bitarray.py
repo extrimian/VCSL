@@ -57,6 +57,14 @@ class BitArrayDAO:
                     raise Exception("Error inserting bitarray")
                 self.psql.put_connection(conn)
 
+    def get_all_bitarrays(self) -> [BitArray]:
+        with self.psql.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute('SELECT * FROM bitarray')
+                rows = cur.fetchall()
+                self.psql.put_connection(conn)
+                return [BitArray.decompress(row[1], id=row[0]) for row in rows]
+
     def set_mask(self, mask: BitArray) -> None:
         with self.psql.get_connection() as conn:
             with conn.cursor() as cur:
