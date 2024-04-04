@@ -4,23 +4,6 @@
 ## Summary
 The VCSL (Verifier Credential Status List) system addresses the need in the verifiable credentials domain for a mechanism to verify the validity or revocation status of credentials. Utilizing a bit array structure, where each bit signifies the status of a verifiable credential (0 for valid, 1 for revoked), the system employs persistence methods like IPFS, blockchain, and an SQL database. It enables issuers to create, manipulate, and query bit arrays, offering flexibility for direct issuer system queries or decentralized solutions through IPFS, providing a comprehensive approach to credential verification.
 
-## Components:
-
-### VCSL API
-
-The VCSL API is the core component, encompassing all endpoints for system administration by the issuer. It also provides endpoints for any issuer to query information about specific VCSLs.
-
-### IPFS API
-
-The IPFS API manages the interactions with the IPFS component of the system. It is responsible for handling file uploads and managing naming on IPNS.
-
-### PostgreSQL
-
-PostgreSQL serves as the SQL database solution for the system, providing robust data storage and retrieval capabilities.
-
-### Redis
-
-The Redis service plays a crucial role in the system, primarily used for implementing locks to ensure data consistency and prevent conflicts.
 # Components:
 ### VCSL API
 This is the main component, is the one that has all the endpoints for the issuer to admin the system, and for any issuer to query about some VCSL.
