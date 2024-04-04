@@ -15,7 +15,7 @@ This is an API fot the IPFS component of the system. It controls the uploading a
 This is the SQL solution for a database in the system
 
 ### Redis
-This Redis service is usde for locks
+This Redis service is used for locks
 
 ## Endpoints
 ### Health Check
