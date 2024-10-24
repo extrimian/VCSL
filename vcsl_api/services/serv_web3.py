@@ -22,8 +22,8 @@ class Web3Service:
         # Obtener el precio del gas dinámicamente desde el nodo
         gas_price = self.web3.eth.gas_price
         call_func = self.contract.functions.setUrl(new_issuer_url).build_transaction({
-            'gas': gas_estimate
-            'gasPrice': gas_price
+            'gas': gas_estimate,
+            'gasPrice': gas_price,
             'from': self.account.address,
             'nonce': nonce,
         })
@@ -42,8 +42,8 @@ class Web3Service:
         # Obtener el precio del gas dinámicamente desde el nodo
         gas_price = self.web3.eth.gas_price
         call_func = self.contract.functions.addData(id, ipns).build_transaction({
-            'gas': gas_estimate
-            'gasPrice': gas_price
+            'gas': gas_estimate,
+            'gasPrice': gas_price,
             'from': self.account.address,
             'nonce': nonce,
         })
