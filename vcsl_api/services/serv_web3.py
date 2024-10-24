@@ -15,9 +15,15 @@ class Web3Service:
 
     def set_issuer_url(self, new_issuer_url: str) -> bool:
         nonce = self.web3.eth.get_transaction_count(self.account.address)
+        gas_estimate = self.contract.functions.setUrl(new_issuer_url).estimate_gas({
+        'from': self.account.address
+        })
+    
+        # Obtener el precio del gas dinámicamente desde el nodo
+        gas_price = self.web3.eth.gas_price
         call_func = self.contract.functions.setUrl(new_issuer_url).build_transaction({
-            'gas': 1000000,
-            'gasPrice': self.web3.to_wei('40', 'gwei'),
+            'gas': gas_estimate
+            'gasPrice': gas_price
             'from': self.account.address,
             'nonce': nonce,
         })
@@ -29,9 +35,15 @@ class Web3Service:
 
     def add_vcsl(self, id: str, ipns: str) -> bool:
         nonce = self.web3.eth.get_transaction_count(self.account.address)
+        gas_estimate = self.contract.functions.addData(id, ipns).estimate_gas({
+        'from': self.account.address
+        })
+
+        # Obtener el precio del gas dinámicamente desde el nodo
+        gas_price = self.web3.eth.gas_price
         call_func = self.contract.functions.addData(id, ipns).build_transaction({
-            'gas': 1000000,
-            'gasPrice': self.web3.to_wei('40', 'gwei'),
+            'gas': gas_estimate
+            'gasPrice': gas_price
             'from': self.account.address,
             'nonce': nonce,
         })
