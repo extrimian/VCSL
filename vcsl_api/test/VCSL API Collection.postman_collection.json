@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "74a41d51-521b-41f8-885a-6ebcbb2cd491",
+		"name": "VCSL API Collection",
+		"description": "A collection of requests to interact with the Verifiable Credential Status List (VCSL) API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "6493379",
+		"_collection_link": "https://everis-edenor.postman.co/workspace/extrimian~dde1c65c-0382-4bba-89a0-76d32702fbd5/collection/6493379-74a41d51-521b-41f8-885a-6ebcbb2cd491?action=share&source=collection_link&creator=6493379"
+	},
+	"item": [
+		{
+			"name": "Bit Array Management",
+			"item": [
+				{
+					"name": "Create Bit Array",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const responseData = pm.response.json();",
+									"pm.globals.set('uuid', responseData.uuid);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": "{{baseUrl}}/bit-array"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Compressed Bit Array",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/bit-array/{{uuid}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Free Bits",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/bit-array/{{uuid}}/free"
+					},
+					"response": []
+				},
+				{
+					"name": "Acquire Index",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const responseData = pm.response.json();",
+									"pm.globals.set('index', responseData.index);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": "{{baseUrl}}/bit-array/{{uuid}}/index"
+					},
+					"response": []
+				},
+				{
+					"name": "Flip Bit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "{{baseUrl}}/bit-array/{{uuid}}/{{index}}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Web3 VCSL Management",
+			"item": [
+				{
+					"name": "Get Issuer Url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/web3/issuer-url"
+					},
+					"response": []
+				},
+				{
+					"name": "Set Issuer Url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"{{url}}\"\n}"
+						},
+						"url": "{{baseUrl}}/web3/issuer-url"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Vcsl",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{id}}\",\n  \"ipns\": \"your-ipns\"\n}"
+						},
+						"url": "{{baseUrl}}/web3/vcsl"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vcsl",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/web3/vcsl/{{id}}"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{baseUrl}}/health-check"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "34.176.132.163:4243"
+		},
+		{
+			"key": "uuid",
+			"value": "7f88819f-3773-44ce-9e06-6d39fd9c53c8"
+		},
+		{
+			"key": "index",
+			"value": "130280"
+		},
+		{
+			"key": "id",
+			"value": "1234"
+		},
+		{
+			"key": "url",
+			"value": "https://yourjavieneagnat.com"
+		}
+	]
+}
