@@ -12,7 +12,7 @@ class PostgresDataStore():
         self.dbport = dbport
         self.pool = None
 
-    def init_connections(self, minconn: int = 1, maxconn: int = 3) -> None:
+    def init_connections(self, minconn: int = 5, maxconn: int = 20) -> None:
         try:
             self.pool = pg.pool.ThreadedConnectionPool(minconn=minconn, maxconn=maxconn, database=self.dbname, user=self.dbuser, password=self.dbpassword, host=self.dbhost, port=self.dbport)
             return True
