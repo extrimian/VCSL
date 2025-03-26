@@ -105,10 +105,13 @@ class BitArrayService:
         mask: BitArray = None
         try:
             bit_array, mask = await self.get_bit_array(bit_array_uuid)
+            print(f"Bit array: {bit_array}")
+            print(f"Mask: {mask}")
         except Exception:
             return False
         if mask[index] == 0:
             return False
+        print(f"Flipping bit {mask[index]}")
         bit_array[index] = not bit_array[index]
 
         self.bitarray_dao.set_bitarray(bit_array)
