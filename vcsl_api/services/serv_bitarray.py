@@ -44,6 +44,14 @@ class BitArrayService:
         self.bitarray_dao.set_mask(bit_array)
         await self.lock_service.release_lock(bit_array_uuid)
         return bit_array_uuid, bit_array
+    
+    async def create_bit_array_with_uuid(self, bit_array_uuid: str) -> (str, BitArray):
+        bit_array = BitArray(id=bit_array_uuid)
+        await self.lock_service.acquire_lock(bit_array_uuid)
+        self.bitarray_dao.set_bitarray(bit_array)
+        self.bitarray_dao.set_mask(bit_array)
+        await self.lock_service.release_lock(bit_array_uuid)
+        return bit_array_uuid, bit_array    
 
     def upload_bit_array(self, id: str, bitarray: BitArray) -> None:
         keyCreated = self.ipfs_service.create_key(key_name=id)

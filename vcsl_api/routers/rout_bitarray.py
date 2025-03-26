@@ -9,6 +9,7 @@ class BitArrayRouter:
         self.bit_array_service: BitArrayService = bit_array_service
         self.router = APIRouter()
         self.router.add_api_route(path="/bit-array", endpoint=self.create_bit_array, methods=["PUT"],)
+        self.router.add_api_route(path="/bit-array/{uuid}", endpoint=self.create_bit_array_with_uuid, methods=["PUT"],)
         self.router.add_api_route(path="/bit-array/{uuid}", endpoint=self.get_compressed_bit_array, methods=["GET"])
         self.router.add_api_route(path="/bit-array/{uuid}/free", endpoint=self.get_free_bits, methods=["GET"])
         self.router.add_api_route(path="/bit-array/{uuid}/index", endpoint=self.acquire_index, methods=["PUT"])
@@ -17,6 +18,11 @@ class BitArrayRouter:
 
     async def create_bit_array(self, background_tasks: BackgroundTasks):
         bit_array_uuid, bit_array = await self.bit_array_service.create_bit_array()
+        background_tasks.add_task(self.bit_array_service.upload_bit_array, bit_array_uuid, bit_array)
+        return {"id": bit_array_uuid}
+    
+    async def create_bit_array_with_uuid(self, background_tasks: BackgroundTasks, uuid: str):
+        bit_array_uuid, bit_array = await self.bit_array_service.create_bit_array_with_uuid(uuid)
         background_tasks.add_task(self.bit_array_service.upload_bit_array, bit_array_uuid, bit_array)
         return {"id": bit_array_uuid}
 
