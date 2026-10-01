@@ -10,7 +10,7 @@ from models.bitarray import BitArray
 from models.ipfs_dto import IPFSDto
 from misc.scheduler import Scheduler
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class BitArrayNotFoundError(Exception):
@@ -36,6 +36,8 @@ class IndexOutOfRangeError(Exception):
 # Random tries before falling back to a linear scan for a free index
 MAX_RANDOM_TRIES = 64
 
+IPFS_SYNC_STARTUP_DELAY_MINUTES = 10
+
 
 @inject
 class BitArrayService:
@@ -55,10 +57,10 @@ class BitArrayService:
         self.web3_service: Web3Service = web3_service
         self.scheduler: Scheduler = scheduler
 
-        print(f"All bitarrays: {self.bitarray_dao.get_all_bitarrays()}")
-        print(f"Total: {len(self.bitarray_dao.get_all_bitarrays())}")
-
-        self.scheduler.add_job(self.update_bitarrays_in_ipfs, 'interval', hours=5, next_run_time=datetime.now())
+        # Loading every list here blocked startup for minutes; the first IPFS sync is also delayed
+        # so the API starts serving immediately
+        self.scheduler.add_job(self.update_bitarrays_in_ipfs, 'interval', hours=5,
+                               next_run_time=datetime.now() + timedelta(minutes=IPFS_SYNC_STARTUP_DELAY_MINUTES))
 
     async def create_bit_array(self) -> (str, BitArray):
         bit_array_uuid = str(uuid4())

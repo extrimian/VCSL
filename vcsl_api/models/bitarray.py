@@ -48,7 +48,6 @@ class BitArray:
         bitarray = cls(size)
         bitarray.array = bytearray(uncompressed)
         bitarray.id = id
-        for i in range(bitarray.size):  # TODO: Rethink another way to do this
-            if bitarray[i]:
-                bitarray.free -= 1
+        # Count set bits in one pass over the bytes instead of 131072 __getitem__ calls
+        bitarray.free = bitarray.size - int.from_bytes(bitarray.array, 'little').bit_count()
         return bitarray

@@ -98,6 +98,34 @@ def run(coro):
     return asyncio.run(coro)
 
 
+# --- startup / decompress ---
+
+def test_decompress_free_matches_bit_by_bit_count():
+    import random
+    ba = BitArray(id="x")
+    for i in random.Random(1).sample(range(SIZE), 35000):
+        ba[i] = 1
+    for i in (0, 7, 8, SIZE - 1):  # byte and list edges
+        ba[i] = 1
+    restored = BitArray.decompress(ba.compress(), id="x")
+    slow_free = SIZE - sum(restored[i] for i in range(SIZE))
+    assert restored.free == slow_free == ba.free
+    assert restored.array == ba.array
+
+
+def test_service_startup_does_not_load_all_lists():
+    class CountingDAO(FakeDAO):
+        calls = 0
+
+        def get_all_bitarrays(self):
+            CountingDAO.calls += 1
+            return super().get_all_bitarrays()
+
+    BitArrayService(cache_service=None, lock_service=FakeLock(), bitarray_dao=CountingDAO(),
+                    web3_service=None, ipfs_service=None, scheduler=FakeScheduler())
+    assert CountingDAO.calls == 0
+
+
 # --- allocation ---
 
 def test_never_returns_assigned_index_when_only_one_is_free():
