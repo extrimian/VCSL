@@ -13,6 +13,30 @@ from uuid import uuid4
 from datetime import datetime
 
 
+class BitArrayNotFoundError(Exception):
+    pass
+
+
+class BitArrayFullError(Exception):
+    pass
+
+
+class LockNotAcquiredError(Exception):
+    pass
+
+
+class IndexNotAssignedError(Exception):
+    pass
+
+
+class IndexOutOfRangeError(Exception):
+    pass
+
+
+# Random tries before falling back to a linear scan for a free index
+MAX_RANDOM_TRIES = 64
+
+
 @inject
 class BitArrayService:
     def __init__(self,
@@ -65,52 +89,73 @@ class BitArrayService:
         compressed_mask = self.bitarray_dao.get_mask(bit_array_uuid)
         return compressed_bit_array, compressed_mask
 
+    @staticmethod
+    def _pick_free_index(mask: BitArray) -> int:
+        # The mask holds every index ever handed out; only mask == 0 is free
+        for _ in range(MAX_RANDOM_TRIES):
+            index = random.randint(0, mask.size - 1)
+            if mask[index] == 0:
+                return index
+        # Almost full list: scan for the first byte with a free bit
+        for byte_index, byte in enumerate(mask.array):
+            if byte != 0xFF:
+                for bit in range(8):
+                    if not byte & (1 << bit):
+                        return byte_index * 8 + bit
+        raise BitArrayFullError()
+
     async def acquire_bit_array_index(self, bit_array_uuid: str) -> int:
         lock = await self.lock_service.acquire_lock(bit_array_uuid, blocking=True)
         if lock is None:
-            return -1
-        bit_array: BitArray = None
-        mask: BitArray = None
+            raise LockNotAcquiredError(bit_array_uuid)
         try:
             bit_array, mask = await self.get_bit_array(bit_array_uuid)
-        except Exception:
-            return -1
+            if bit_array is None or mask is None:
+                raise BitArrayNotFoundError(bit_array_uuid)
+            if mask.free == 0:
+                raise BitArrayFullError(bit_array_uuid)
 
-        if bit_array.free == 0:
+            index = self._pick_free_index(mask)
+            mask[index] = 1
+            self.bitarray_dao.set_mask(mask)
+            return index
+        finally:
             await self.lock_service.release_lock(bit_array_uuid)
-            return -1
 
-        index = random.randint(0, bit_array.size - 1)
-        while bit_array[index] == 1:
-            index = random.randint(0, bit_array.size - 1)
-
-        mask[index] = 1
-        self.bitarray_dao.set_mask(mask)
-        await self.lock_service.release_lock(bit_array_uuid)
-        return index
-
-    async def flip_bit(self, bit_array_uuid: str, index: int) -> bool:
+    async def set_bit(self, bit_array_uuid: str, index: int, value: int = None) -> int:
+        """Sets the status bit to `value` (0/1). With value=None it toggles (legacy behaviour).
+        Returns the resulting bit."""
         lock = await self.lock_service.acquire_lock(bit_array_uuid, blocking=True)
         if lock is None:
-            return False
-        bit_array: BitArray = None
-        mask: BitArray = None
+            raise LockNotAcquiredError(bit_array_uuid)
         try:
             bit_array, mask = await self.get_bit_array(bit_array_uuid)
-        except Exception:
-            return False
-        if mask[index] == 0:
-            return False
-        bit_array[index] = not bit_array[index]
+            if bit_array is None or mask is None:
+                raise BitArrayNotFoundError(bit_array_uuid)
+            if index < 0 or index >= bit_array.size:
+                raise IndexOutOfRangeError(index)
+            if mask[index] == 0:
+                raise IndexNotAssignedError(index)
 
-        self.bitarray_dao.set_bitarray(bit_array)
-        await self.lock_service.release_lock(bit_array_uuid)
-        return True  # TODO: Check if there was an error and return false
+            new_value = (1 - bit_array[index]) if value is None else value
+            if bit_array[index] != new_value:
+                bit_array[index] = new_value
+                self.bitarray_dao.set_bitarray(bit_array)
+            return new_value
+        finally:
+            await self.lock_service.release_lock(bit_array_uuid)
+
+    async def flip_bit(self, bit_array_uuid: str, index: int) -> bool:
+        # Kept for backwards compatibility; prefer set_bit with an explicit value
+        await self.set_bit(bit_array_uuid, index)
+        return True
 
     async def get_free_bits(self, bit_array_uuid: str) -> int:
         try:
             bit_array, mask = await self.get_bit_array(bit_array_uuid)
         except Exception:
+            return -1
+        if mask is None:
             return -1
         return mask.free
 
