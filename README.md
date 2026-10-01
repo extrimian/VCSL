@@ -64,22 +64,40 @@ This Redis service is used for locks
 
 - **Path:** `/bit-array/{uuid}/index`
 - **HTTP Method:** `PUT`
-- **Summary:** Acquire Index
+- **Summary:** Acquire Index. Returns `{"index": N}`, an index never assigned before in that list.
 - **Request:**
   - Path Parameters:
     - `uuid` (string, required)
+- **Errors:** `404` list not found, `409` list full (no free indexes), `503` list busy (retry).
 
 ---
 
-### Flip Bit
+### Set Bit (recommended)
 
 - **Path:** `/bit-array/{uuid}/{index}`
-- **HTTP Method:** `POST`
-- **Summary:** Flip Bit
+- **HTTP Method:** `PUT`
+- **Summary:** Sets the status bit to an explicit value. Idempotent: safe to retry.
 - **Request:**
   - Path Parameters:
     - `uuid` (string, required)
     - `index` (integer, required)
+  - Body: `{"bit": 1}` (revoke) or `{"bit": 0}` (reinstate)
+- **Response:** `{"bit": N}` with the resulting value.
+- **Errors:** `400` index not assigned or out of range, `404` list not found, `422` missing/invalid body, `503` list busy.
+
+---
+
+### Flip Bit (legacy)
+
+- **Path:** `/bit-array/{uuid}/{index}`
+- **HTTP Method:** `POST`
+- **Summary:** With `{"bit": 0|1}` or `{"value": 0|1}` in the body, sets the bit to that value (same as `PUT`). **Without a body it toggles the bit (deprecated: retrying a revocation reinstates the credential).**
+- **Request:**
+  - Path Parameters:
+    - `uuid` (string, required)
+    - `index` (integer, required)
+  - Body (optional): `{"bit": 0|1}` or `{"value": 0|1}`
+- **Response:** `{"message": "Bit flipped", "bit": N}`
 
 ---
 
